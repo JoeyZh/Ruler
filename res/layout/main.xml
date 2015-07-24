@@ -9,32 +9,32 @@
     tools:context=".MainActivity" >
 
     <TextView
+        android:id="@+id/result_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
 
-    <FrameLayout
+    <com.joey.ruler.library.Ruler
+        android:id="@+id/ruler"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/result_text"
+        android:background="#ffaaaaaa"
+        android:orientation="horizontal" />
 
-        <HorizontalScrollView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:scrollbars="none" >
+    <EditText
+        android:id="@+id/edit_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ruler"
+        android:hint="00:00" />
 
-            <com.joey.ruler.library.Ruler
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:background="#ffaaaaaa"
-                android:orientation="horizontal" />
-        </HorizontalScrollView>
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:background="@drawable/mark" 
-            android:layout_gravity="center_horizontal"/>
-    </FrameLayout>
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/ruler"
+        android:text="跳转" />
 
 </RelativeLayout>
