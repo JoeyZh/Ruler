@@ -1,2 +1,2 @@
 # Ruler
-A horizontal scrolling ruler with time line 
+A horizontal scrolling Ruler with Time line 
