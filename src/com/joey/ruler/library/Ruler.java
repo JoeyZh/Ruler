@@ -376,7 +376,7 @@ public class Ruler extends FrameLayout {
 				int scrollX = scrollerView.getScrollX();
 
 				int newScrollX = (scrollX + getWidth() / 2
-						- dp2px((int) padding) - dp2px((int) minUnitSize) / 2);
+						- dp2px((int) padding) - dp2px((int) minUnitSize + UNIT_ITEM_WIDTH) / 2);
 				int bigUnitSize = (dp2px((int) minUnitSize) * perUnitCount);
 				int smallUnitSize = dp2px((int) minUnitSize);
 				int max = newScrollX / bigUnitSize;

@@ -22,12 +22,11 @@
         android:layout_below="@+id/result_text"
         android:background="#ffaaaaaa"
         android:orientation="horizontal"
-        ruler:min_unit_size="10dp"
         ruler:max_unit_count="24"
+        ruler:min_unit_size="10dp"
         ruler:per_unit_count="10"
-        ruler:unit_bmp_height="40dp"  
-        ruler:ruler_mode="timeline"  
-         />
+        ruler:ruler_mode="timeline"
+        ruler:unit_bmp_height="40dp" />
 
     <EditText
         android:id="@+id/edit_text"
@@ -42,6 +41,41 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/ruler"
+        android:text="跳转" />
+
+    <TextView
+        android:id="@+id/result_text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/edit_text"
+        android:text="@string/hello_world" />
+
+    <com.joey.ruler.library.Ruler
+        android:id="@+id/ruler2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/result_text2"
+        android:background="#ffaaaaaa"
+        android:orientation="horizontal"
+        ruler:max_unit_count="100"
+        ruler:min_unit_size="5dp"
+        ruler:per_unit_count="10"
+        ruler:ruler_mode="ruler"
+        ruler:unit_bmp_height="40dp" />
+
+    <EditText
+        android:id="@+id/edit_text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ruler2"
+        android:hint="0.000" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/ruler2"
         android:text="跳转" />
 
 </RelativeLayout>
