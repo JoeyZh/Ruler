@@ -35,9 +35,15 @@ import android.widget.TextView;
  */
 public class Ruler extends FrameLayout {
 
+	/**
+	 * 标记，采用红线标示，标记当前刻度
+	 */
 	private ImageView mark;
 
 	private Bitmap markBgBmp;
+	/**
+	 * 绘制的几个刻度，有三种刻度，最大刻度，中等刻度，和最小刻度
+	 */
 	private Drawable minDrawable;
 	private Drawable maxDrawable;
 	private Drawable midDrawable;
@@ -50,7 +56,13 @@ public class Ruler extends FrameLayout {
 	 * unit size of the ruler
 	 */
 	private float minUnitSize = 20.0f;
+	/**
+	 * 最大单位的个数
+	 */
 	private int maxUnitCount = 24;
+	/**
+	 * 最大单位包含的每个单位数
+	 */
 	private int perUnitCount = 10;
 
 	private int maxUnitColor;
@@ -61,16 +73,32 @@ public class Ruler extends FrameLayout {
 	 * Padding on the left,
 	 */
 	private float padding = 10.0f;
-
+	/**
+	 * 刻度的宽度
+	 */
 	private final int UNIT_ITEM_WIDTH = 2;
+	/**
+	 * 刻度容器
+	 */
 	private LinearLayout unitContainer;
+	/**
+	 * 单位文字容器
+	 */
 	private LinearLayout textContainer;
 	private RelativeLayout rulerContainer;
+	/**
+	 * 整个刻度尺
+	 */
 	private LinearLayout rootContainer;
-
+	/**
+	 * 横向滑动的scrollerView
+	 */
 	private RulerScrollView scrollerView;
-	private RulerHandler rulerHandler;
 
+	private RulerHandler rulerHandler;
+	/**
+	 * 标记刻度尺的类型，一种是一般的刻度尺， 另一种为时间刻度尺
+	 */
 	public final static int MODE_RULER = 0;
 	public final static int MODE_TIMELINE = 1;
 
@@ -95,7 +123,7 @@ public class Ruler extends FrameLayout {
 
 	public Ruler(Context context, AttributeSet attrs) {
 		super(context, attrs, R.attr.ruler_style);
-		
+
 		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Ruler,
 				R.attr.ruler_style, 0);
 		minUnitSize = a.getDimension(R.styleable.Ruler_min_unit_size, 20.0f);
@@ -128,6 +156,9 @@ public class Ruler extends FrameLayout {
 		scrollerView.setOnScrollStateChangedListener(scrollListener);
 	}
 
+	/**
+	 * 初始化刻度尺的第一级容器
+	 */
 	private void initParentContainer() {
 		scrollerView = new RulerScrollView(getContext());
 		scrollerView.setVerticalScrollBarEnabled(false);
@@ -176,6 +207,9 @@ public class Ruler extends FrameLayout {
 
 	}
 
+	/**
+	 * 初始化刻度与刻度标记部分
+	 */
 	private void initUnit() {
 
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -282,11 +316,11 @@ public class Ruler extends FrameLayout {
 
 	/**
 	 * time format is HH:MM
-	 * 
+	 * 跳转到时间刻度尺的部分，只有在时间轴模式下条件下才能使用
 	 * @param formatTime
 	 */
 	public void scrollToTime(String formatTime) {
-		if(mode == MODE_RULER)
+		if (mode == MODE_RULER)
 			return;
 		if (formatTime == null || formatTime.isEmpty())
 			return;
@@ -309,24 +343,27 @@ public class Ruler extends FrameLayout {
 		scrollerView.smoothScrollTo(
 				(int) ((val - minVal) * dp2px((int) minUnitSize)), 0);
 	}
-
-	public void scrollTo(int max,int min,float val)
-	{
+	/**
+	 * 跳转到刻度尺的某个位置
+	 * @param max 最大刻度
+	 * @param min 最小刻度
+	 * @param val 最小刻度的浮点部分
+	 */
+	public void scrollTo(int max, int min, float val) {
 		int minVal = (getWidth() / 2 - dp2px((int) padding + (int) minUnitSize
 				/ 2 - UNIT_ITEM_WIDTH * 2))
 				/ dp2px((int) minUnitSize);
 		Log.i(getClass().getName(), "minVal = " + minVal);
-		
-		int total = max *10 + min;
-		if(total < minVal)
-		{
+
+		int total = max * 10 + min;
+		if (total < minVal) {
 			scrollerView.smoothScrollTo(0, 0);
 			return;
 		}
 		scrollerView.smoothScrollTo(
 				(int) ((total - minVal + val) * dp2px((int) minUnitSize)), 0);
 	}
-	
+
 	ScrollViewListener scrollListener = new ScrollViewListener() {
 
 		@Override
@@ -343,10 +380,12 @@ public class Ruler extends FrameLayout {
 				int bigUnitSize = (dp2px((int) minUnitSize) * perUnitCount);
 				int smallUnitSize = dp2px((int) minUnitSize);
 				int max = newScrollX / bigUnitSize;
-				int min = newScrollX /smallUnitSize  % perUnitCount;
-				float val = (float)(newScrollX - (max*bigUnitSize)-(min*smallUnitSize))/(float)smallUnitSize;
-				
-				Log.i(getClass().getName(), "max = " + max + ",min = " + min+",val = "+val);
+				int min = newScrollX / smallUnitSize % perUnitCount;
+				float val = (float) (newScrollX - (max * bigUnitSize) - (min * smallUnitSize))
+						/ (float) smallUnitSize;
+
+				Log.i(getClass().getName(), "max = " + max + ",min = " + min
+						+ ",val = " + val);
 				if (rulerHandler != null) {
 					rulerHandler.markScrollto(max, min, val);
 				}
