@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+
+    <declare-styleable name="Ruler">
+        <attr name="min_unit_size" format="dimension" />
+        <attr name="max_unit_count" format="integer" />
+        <attr name="per_unit_count" format="integer" />
+        <attr name="unit_bmp_height" format="dimension" />
+        <attr name="max_unit_color" format="color" />
+        <attr name="mid_unit_color" format="color" />
+        <attr name="min_unit_color" format="color" />
+        <attr name="ruler_mode" format="enum">
+            <enum name="ruler" value="0" />
+            <enum name="timeline" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <attr name="ruler_style" format="reference" />
+
+</resources>

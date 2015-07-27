@@ -5,6 +5,7 @@ import com.joey.ruler.library.RulerScrollView.ScrollType;
 import com.joey.ruler.library.RulerScrollView.ScrollViewListener;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -41,25 +42,25 @@ public class Ruler extends FrameLayout {
 	private Drawable maxDrawable;
 	private Drawable midDrawable;
 
-	private int bmpMaxHeight = 60;
+	private float bmpMaxHeight = 60.0f;
 
-	private float MAX_TEXT_SIZE = 15.0f;
+	private float maxTextSize = 15.0f;
 
 	/**
 	 * unit size of the ruler
 	 */
-	private int minUnitSize = 20;
+	private float minUnitSize = 20.0f;
 	private int maxUnitCount = 24;
 	private int perUnitCount = 10;
-	private int currentUnit;
 
-	private int lastX;
-	private int lastY;
+	private int maxUnitColor;
+	private int midUnitColor;
+	private int minUnitColor;
 
 	/**
 	 * Padding on the left,
 	 */
-	private final int PADDING = 10;
+	private float padding = 10.0f;
 
 	private final int UNIT_ITEM_WIDTH = 2;
 	private LinearLayout unitContainer;
@@ -70,25 +71,57 @@ public class Ruler extends FrameLayout {
 	private RulerScrollView scrollerView;
 	private RulerHandler rulerHandler;
 
+	public final static int MODE_RULER = 0;
+	public final static int MODE_TIMELINE = 1;
+
+	private int mode;
+
 	public Ruler(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		// TODO Auto-generated constructor stub
+
+		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Ruler,
+				defStyleAttr, 0);
+		minUnitSize = a.getDimension(R.styleable.Ruler_min_unit_size, 20.0f);
+		maxUnitCount = a.getInteger(R.styleable.Ruler_max_unit_count, 24);
+		perUnitCount = a.getInteger(R.styleable.Ruler_per_unit_count, 10);
+		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
+		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
+		padding = minUnitSize / 2;
+
+		a.recycle();
+
 		init();
 	}
 
 	public Ruler(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		// TODO Auto-generated constructor stub
+		super(context, attrs, R.attr.ruler_style);
+		
+		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.Ruler,
+				R.attr.ruler_style, 0);
+		minUnitSize = a.getDimension(R.styleable.Ruler_min_unit_size, 20.0f);
+		maxUnitCount = a.getInteger(R.styleable.Ruler_max_unit_count, 24);
+		perUnitCount = a.getInteger(R.styleable.Ruler_per_unit_count, 10);
+		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
+		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
+		padding = minUnitSize / 2;
+
+		a.recycle();
+		Log.i("Ruler",
+				String.format(
+						"minUnitSize %02f,maxUnitCount %d,perUnitCount %d,bmpMaxHeight %02f,mode %d",
+						minUnitSize, maxUnitCount, perUnitCount, bmpMaxHeight,
+						mode));
 		init();
 	}
 
 	public Ruler(Context context) {
-		super(context);
-		// TODO Auto-generated constructor stub
+		super(context, null);
 		init();
+
 	}
 
 	private void init() {
+		Log.i("Ruler", "ruler init");
 		initDrawable();
 		initParentContainer();
 		initUnit();
@@ -121,7 +154,8 @@ public class Ruler extends FrameLayout {
 		unitContainer.setLayoutParams(params1);
 		unitContainer.setOrientation(LinearLayout.HORIZONTAL);
 		unitContainer.setId(R.id.unit_container_id);
-		unitContainer.setPadding(dp2px(PADDING), 0, dp2px(PADDING), 0);
+		unitContainer.setPadding(dp2px((int) padding), 0, dp2px((int) padding),
+				0);
 		rulerContainer.addView(unitContainer);
 
 		textContainer = new LinearLayout(getContext());
@@ -145,7 +179,7 @@ public class Ruler extends FrameLayout {
 	private void initUnit() {
 
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-				dp2px(minUnitSize), -2);
+				dp2px((int) minUnitSize), -2);
 
 		for (int i = 0; i < maxUnitCount; i++) {
 			for (int j = 0; j < perUnitCount; j++) {
@@ -157,7 +191,7 @@ public class Ruler extends FrameLayout {
 				if (j == 0) {
 					minUnitView.setCompoundDrawables(null, maxDrawable, null,
 							null);
-				} else if (j == 5) {
+				} else if (j == perUnitCount / 2) {
 					minUnitView.setCompoundDrawables(null, midDrawable, null,
 							null);
 				} else {
@@ -176,16 +210,25 @@ public class Ruler extends FrameLayout {
 		unitContainer.addView(maxUnitView);
 
 		LinearLayout.LayoutParams maxParams = new LinearLayout.LayoutParams(
-				dp2px(minUnitSize *perUnitCount/2), -2);
+				dp2px((int) minUnitSize * perUnitCount / 2), -2);
 		for (int i = 0; i < maxUnitCount * 2; i++) {
 			TextView textUnitView = new TextView(getContext());
-			textUnitView.setTextSize(MAX_TEXT_SIZE);
+			textUnitView.setTextSize(maxTextSize);
 			textUnitView.setLayoutParams(maxParams);
 			textUnitView.setGravity(Gravity.TOP | Gravity.LEFT);
-			if (i % 2 == 0)
-				textUnitView.setText(String.format("%02d:00", i / 2));
-			else
-				textUnitView.setText(String.format("%02d:30", i / 2));
+			switch (mode) {
+			case MODE_RULER:
+				if (i % 2 == 0)
+					textUnitView.setText(String.format("    %d  ", i / 2));
+				break;
+			case MODE_TIMELINE:
+				if (i % 2 == 0)
+					textUnitView.setText(String.format("%02d:00", i / 2));
+				else
+					textUnitView.setText(String.format("%02d:30", i / 2));
+
+			}
+
 			textContainer.addView(textUnitView);
 		}
 	}
@@ -195,11 +238,11 @@ public class Ruler extends FrameLayout {
 	 */
 	private void initDrawable() {
 		Bitmap bmp1 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				dp2px(bmpMaxHeight), Config.ARGB_8888);
+				dp2px((int) bmpMaxHeight), Config.ARGB_8888);
 		Bitmap bmp2 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				dp2px(bmpMaxHeight) * 3 / 4, Config.ARGB_8888);
+				dp2px((int) bmpMaxHeight) * 3 / 4, Config.ARGB_8888);
 		Bitmap bmp3 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				dp2px(bmpMaxHeight) * 2 / 3, Config.ARGB_8888);
+				dp2px((int) bmpMaxHeight) * 2 / 3, Config.ARGB_8888);
 		Paint paint = new Paint();
 		paint.setColor(Color.BLACK);
 		paint.setStrokeWidth(10);
@@ -225,7 +268,7 @@ public class Ruler extends FrameLayout {
 		midDrawable.setBounds(0, 0, midDrawable.getMinimumWidth(),
 				midDrawable.getMinimumHeight());
 		markBgBmp = Bitmap.createBitmap(2 * dp2px(UNIT_ITEM_WIDTH),
-				dp2px(bmpMaxHeight) + dp2px((int) MAX_TEXT_SIZE),
+				dp2px((int) bmpMaxHeight) + dp2px((int) maxTextSize),
 				Config.ARGB_8888);
 		Canvas canvas4 = new Canvas(markBgBmp);
 		paint.setColor(Color.RED);
@@ -238,30 +281,52 @@ public class Ruler extends FrameLayout {
 	}
 
 	/**
-	 *  time format is HH:MM
+	 * time format is HH:MM
+	 * 
 	 * @param formatTime
 	 */
-	public void scrollToTime(String formatTime)
-	{
-		if(formatTime == null||formatTime.isEmpty())
+	public void scrollToTime(String formatTime) {
+		if(mode == MODE_RULER)
+			return;
+		if (formatTime == null || formatTime.isEmpty())
 			return;
 		String value[] = formatTime.split(":");
-		if(value.length<2)
+		if (value.length < 2)
 			return;
-		int minVal = (getWidth()/2-dp2px(PADDING+minUnitSize/2-UNIT_ITEM_WIDTH*2))/dp2px(minUnitSize);
-		Log.i(getClass().getName(),"minVal = "+minVal);
-		int hour = Integer.parseInt(value[0])%24;
-		int minute = Integer.parseInt(value[1])%60;
-		Log.i(getClass().getName(), "hour is "+hour+",minute is "+minute);
-		float val = hour *10 + (float)minute /6;
-		Log.i(getClass().getName(),"val = "+val);
-		if(val < minVal)
+		int minVal = (getWidth() / 2 - dp2px((int) padding + (int) minUnitSize
+				/ 2 - UNIT_ITEM_WIDTH * 2))
+				/ dp2px((int) minUnitSize);
+		Log.i(getClass().getName(), "minVal = " + minVal);
+		int hour = Integer.parseInt(value[0]) % 24;
+		int minute = Integer.parseInt(value[1]) % 60;
+		Log.i(getClass().getName(), "hour is " + hour + ",minute is " + minute);
+		float val = hour * 10 + (float) minute / 6;
+		Log.i(getClass().getName(), "val = " + val);
+		if (val < minVal) {
+			scrollerView.smoothScrollTo(0, 0);
+			return;
+		}
+		scrollerView.smoothScrollTo(
+				(int) ((val - minVal) * dp2px((int) minUnitSize)), 0);
+	}
+
+	public void scrollTo(int max,int min,float val)
+	{
+		int minVal = (getWidth() / 2 - dp2px((int) padding + (int) minUnitSize
+				/ 2 - UNIT_ITEM_WIDTH * 2))
+				/ dp2px((int) minUnitSize);
+		Log.i(getClass().getName(), "minVal = " + minVal);
+		
+		int total = max *10 + min;
+		if(total < minVal)
 		{
 			scrollerView.smoothScrollTo(0, 0);
 			return;
 		}
-		scrollerView.smoothScrollTo((int)((val - minVal)*dp2px(minUnitSize)), 0);
+		scrollerView.smoothScrollTo(
+				(int) ((total - minVal + val) * dp2px((int) minUnitSize)), 0);
 	}
+	
 	ScrollViewListener scrollListener = new ScrollViewListener() {
 
 		@Override
@@ -273,20 +338,17 @@ public class Ruler extends FrameLayout {
 			case FLING:
 				int scrollX = scrollerView.getScrollX();
 
-				int newScrollX = (scrollX + getWidth() / 2 - dp2px(PADDING) - dp2px(minUnitSize) / 2);
-				int hourUnitSize = (dp2px(minUnitSize) * perUnitCount);
-
-				int hour = newScrollX / hourUnitSize;
-				int val = newScrollX / dp2px(minUnitSize);
-				int dep = (int) val % perUnitCount;
-
-				int minute = (newScrollX - hour * hourUnitSize) * 6
-						/ (dp2px(minUnitSize));
-				Log.i(getClass().getName(), "hour = " + hour + "dep = " + dep
-						+ ",minute = " + minute);
-
+				int newScrollX = (scrollX + getWidth() / 2
+						- dp2px((int) padding) - dp2px((int) minUnitSize) / 2);
+				int bigUnitSize = (dp2px((int) minUnitSize) * perUnitCount);
+				int smallUnitSize = dp2px((int) minUnitSize);
+				int max = newScrollX / bigUnitSize;
+				int min = newScrollX /smallUnitSize  % perUnitCount;
+				float val = (float)(newScrollX - (max*bigUnitSize)-(min*smallUnitSize))/(float)smallUnitSize;
+				
+				Log.i(getClass().getName(), "max = " + max + ",min = " + min+",val = "+val);
 				if (rulerHandler != null) {
-					rulerHandler.markScrollto(hour, minute, val);
+					rulerHandler.markScrollto(max, min, val);
 				}
 				break;
 			}

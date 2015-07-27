@@ -5,6 +5,7 @@ import com.joey.ruler.library.RulerHandler;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -40,8 +41,10 @@ public class MainActivity extends Activity {
 	private RulerHandler rulerHandler = new RulerHandler() {
 		
 		@Override
-		public void markScrollto(int hour, int minute, int val) {
+		public void markScrollto(int max, int min, float val) {
 			// TODO Auto-generated method stub
+			int hour = max;
+			int minute = min*6 + (int)(val *6);
 			result.setText(String.format("%02d:%02d", hour,minute));
 		}
 	};
@@ -51,6 +54,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			// TODO Auto-generated method stub
+			Log.i("MainActivity","onClick");
 			String msg = editText.getText().toString();
 			if(msg == null ||msg.isEmpty())
 				return;
