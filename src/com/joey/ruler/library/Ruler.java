@@ -202,7 +202,8 @@ public class Ruler extends FrameLayout {
 		
 		//初始化显示刻度文字
 		RelativeLayout.LayoutParams paramsTop = new RelativeLayout.LayoutParams(
-				-1, -2);	
+				-1, -2);
+		paramsTop.topMargin = dp2px((int)(bmpMaxHeight+resultTextSize));
 		textContainer = new LinearLayout(getContext());
 		textContainer.setLayoutParams(paramsTop);
 		textContainer.setOrientation(LinearLayout.HORIZONTAL);
@@ -220,7 +221,7 @@ public class Ruler extends FrameLayout {
 		rulerContainer.addView(unitContainer);
 
 		mark = new ImageView(getContext());
-		FrameLayout.LayoutParams params3 = new FrameLayout.LayoutParams(-2, -2);
+		FrameLayout.LayoutParams params3 = new FrameLayout.LayoutParams(-2, -1);
 		params3.gravity = Gravity.CENTER;
 		params3.leftMargin = -markBgBmp.getWidth() / 2;
 		mark.setLayoutParams(params3);
