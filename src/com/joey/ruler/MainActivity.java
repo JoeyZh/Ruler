@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void markScrollto(int max, int min, float val) {
-			result2.setText(String.format("%2f", ((float)max+((float)min+val)/10)));
+			result2.setText(String.format("%02f", ((float)max+((float)min+val)/10)));
 		}
 	};
 	
