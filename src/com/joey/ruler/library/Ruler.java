@@ -48,7 +48,7 @@ public class Ruler extends FrameLayout {
 	private Drawable maxDrawable;
 	private Drawable midDrawable;
 
-	private float bmpMaxHeight = 60.0f;
+	private float bmpMaxHeight = 20.0f;
 
 	private float maxTextSize = 10.0f;
 	private float resultTextSize = 15.0f;
@@ -96,7 +96,7 @@ public class Ruler extends FrameLayout {
 	 */
 	private LinearLayout resultContainer;
 	public TextView resultTagView;
-	public TextView resullView;
+	public TextView resultView;
 	/**
 	 * 整个刻度尺
 	 */
@@ -203,7 +203,7 @@ public class Ruler extends FrameLayout {
 		//初始化显示刻度文字
 		RelativeLayout.LayoutParams paramsTop = new RelativeLayout.LayoutParams(
 				-1, -2);
-		paramsTop.topMargin = dp2px((int)(bmpMaxHeight+resultTextSize));
+		paramsTop.topMargin = dp2px((int)(bmpMaxHeight/2+resultTextSize));
 		textContainer = new LinearLayout(getContext());
 		textContainer.setLayoutParams(paramsTop);
 		textContainer.setOrientation(LinearLayout.HORIZONTAL);
@@ -220,11 +220,32 @@ public class Ruler extends FrameLayout {
 				dp2px((int) unitPadding), 0);
 		rulerContainer.addView(unitContainer);
 
+		FrameLayout.LayoutParams params3 = new FrameLayout.LayoutParams(-1,
+				paramsTop.topMargin);	
+		resultContainer = new LinearLayout(getContext());
+		resultContainer.setLayoutParams(params3);
+		params3.gravity = Gravity.TOP|Gravity.CENTER_HORIZONTAL;
+		addView(resultContainer);
+		
+		LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+				0, -1);
+		textParams.gravity = Gravity.CENTER;
+		textParams.weight = 1;
+		resultTagView = new TextView(getContext());
+		resultTagView.setLayoutParams(textParams);
+		resultContainer.addView(resultTagView);
+		resultTagView.setTextSize(resultTextSize);
+		
+		resultView = new TextView(getContext());
+		resultView.setLayoutParams(textParams);
+		resultView.setTextSize(resultTextSize);
+		resultContainer.addView(resultView);
+		
 		mark = new ImageView(getContext());
-		FrameLayout.LayoutParams params3 = new FrameLayout.LayoutParams(-2, -1);
-		params3.gravity = Gravity.CENTER;
-		params3.leftMargin = -markBgBmp.getWidth() / 2;
-		mark.setLayoutParams(params3);
+		FrameLayout.LayoutParams paramsMark = new FrameLayout.LayoutParams(-2, -1);
+		paramsMark.gravity = Gravity.CENTER;
+		paramsMark.leftMargin = -markBgBmp.getWidth() / 2;
+		mark.setLayoutParams(paramsMark);
 		mark.setImageBitmap(markBgBmp);
 		addView(mark);
 
@@ -323,7 +344,7 @@ public class Ruler extends FrameLayout {
 		midDrawable.setBounds(0, 0, midDrawable.getMinimumWidth(),
 				midDrawable.getMinimumHeight());
 		markBgBmp = Bitmap.createBitmap(2 * dp2px(UNIT_ITEM_WIDTH),
-				dp2px((int) bmpMaxHeight) + dp2px((int) maxTextSize),
+				maxHeight*2 + dp2px((int) maxTextSize),
 				Config.ARGB_8888);
 		Canvas canvas4 = new Canvas(markBgBmp);
 		paint.setColor(Color.RED);
@@ -433,16 +454,31 @@ public class Ruler extends FrameLayout {
 				Log.i(getClass().getName(),"unitvisible "+unitVisible );
 				Log.i(getClass().getName(),"midvisible "+(unitVisible &(byte)MID_VISIBLE));
 				Log.i(getClass().getName(),"minvisible "+(unitVisible &(byte)MIN_VISIBLE));
-
-				if (rulerHandler != null) {
-					rulerHandler.markScrollto(max, min, val);
-				}
+				
+				showResult(max, min, val);
+				
 				break;
 			}
 		}
 
 	};
 
+	private void showResult(int max,int min,float val)
+	{
+		if(mode == MODE_TIMELINE)
+		{
+			int hour = max;
+			int minute = min*6 + (int)(val *6);
+			resultView.setText(String.format("%02d:%02d", hour,minute));
+		}
+		if(mode == MODE_RULER)
+		{
+			resultView.setText(String.format("%02f", ((float)max+((float)min+val)/10)));
+		}
+		if (rulerHandler != null) {
+			rulerHandler.markScrollto(max, min, val);
+		}
+	}
 	public int dp2px(int dp) {
 		float scale = getContext().getResources().getDisplayMetrics().density;
 		return (int) (dp * scale + 0.5f);
