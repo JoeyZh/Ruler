@@ -72,7 +72,11 @@ public class Ruler extends FrameLayout {
 	/**
 	 * Padding on the left,
 	 */
-	private float padding = 10.0f;
+	private float unitPadding = 10.0f;
+	/**
+	 * 这个刻度的起始位置部分偏移，这部分偏移，可以使scrollView滑动到刻度尺的最前面或者是最后面
+	 */
+	private int padding = 0;
 	/**
 	 * 刻度的宽度
 	 */
@@ -114,7 +118,7 @@ public class Ruler extends FrameLayout {
 		perUnitCount = a.getInteger(R.styleable.Ruler_per_unit_count, 10);
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
-		padding = minUnitSize / 2;
+		unitPadding = minUnitSize / 2;
 
 		a.recycle();
 
@@ -131,7 +135,7 @@ public class Ruler extends FrameLayout {
 		perUnitCount = a.getInteger(R.styleable.Ruler_per_unit_count, 10);
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
-		padding = minUnitSize / 2;
+		unitPadding = minUnitSize / 2;
 
 		a.recycle();
 		Log.i("Ruler",
@@ -185,7 +189,7 @@ public class Ruler extends FrameLayout {
 		unitContainer.setLayoutParams(params1);
 		unitContainer.setOrientation(LinearLayout.HORIZONTAL);
 		unitContainer.setId(R.id.unit_container_id);
-		unitContainer.setPadding(dp2px((int) padding), 0, dp2px((int) padding),
+		unitContainer.setPadding(dp2px((int) unitPadding), 0, dp2px((int) unitPadding),
 				0);
 		rulerContainer.addView(unitContainer);
 
@@ -327,7 +331,7 @@ public class Ruler extends FrameLayout {
 		String value[] = formatTime.split(":");
 		if (value.length < 2)
 			return;
-		int minVal = (getWidth() / 2 - dp2px((int) padding + (int) minUnitSize
+		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding + (int) minUnitSize
 				/ 2 - UNIT_ITEM_WIDTH * 2))
 				/ dp2px((int) minUnitSize);
 		Log.i(getClass().getName(), "minVal = " + minVal);
@@ -350,7 +354,7 @@ public class Ruler extends FrameLayout {
 	 * @param val 最小刻度的浮点部分
 	 */
 	public void scrollTo(int max, int min, float val) {
-		int minVal = (getWidth() / 2 - dp2px((int) padding + (int) minUnitSize
+		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding + (int) minUnitSize
 				/ 2 - UNIT_ITEM_WIDTH * 2))
 				/ dp2px((int) minUnitSize);
 		Log.i(getClass().getName(), "minVal = " + minVal);
@@ -368,15 +372,23 @@ public class Ruler extends FrameLayout {
 
 		@Override
 		public void onScrollChanged(ScrollType scrollType) {
-			// TODO Auto-generated method stub
+//		目的是让刻尺滑动到最前段，或者最后部分
+			if(padding == 0)
+			{
+				padding = getWidth() / 2 - dp2px((int)unitPadding + (int)minUnitSize/2 + UNIT_ITEM_WIDTH);
+//				计算刻尺容器靠右的部分时，减去markBimap的宽度，保持可以滑动到最右边
+				rootContainer.setPadding(padding, 0,padding+(dp2px(UNIT_ITEM_WIDTH*2)), 0);
+				scrollerView.scrollBy(padding, 0);
+				return;
+			}
 			switch (scrollType) {
 			case IDLE:
 			case TOUCH_SCROLL:
 			case FLING:
-				int scrollX = scrollerView.getScrollX();
+				int scrollX = scrollerView.getScrollX() - padding;
 
 				int newScrollX = (scrollX + getWidth() / 2
-						- dp2px((int) padding) - dp2px((int) minUnitSize + UNIT_ITEM_WIDTH) / 2);
+						- dp2px((int) unitPadding) - dp2px((int) minUnitSize + UNIT_ITEM_WIDTH) / 2);
 				int bigUnitSize = (dp2px((int) minUnitSize) * perUnitCount);
 				int smallUnitSize = dp2px((int) minUnitSize);
 				int max = newScrollX / bigUnitSize;

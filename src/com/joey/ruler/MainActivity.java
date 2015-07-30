@@ -44,7 +44,6 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
@@ -53,7 +52,6 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void markScrollto(int max, int min, float val) {
-			// TODO Auto-generated method stub
 			int hour = max;
 			int minute = min*6 + (int)(val *6);
 			result.setText(String.format("%02d:%02d", hour,minute));
@@ -63,9 +61,7 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void markScrollto(int max, int min, float val) {
-			// TODO Auto-generated method stub
-			
-			result2.setText(String.format("%f", ((float)max+((float)min+val)/10)));
+			result2.setText(String.format("%2f", ((float)max+((float)min+val)/10)));
 		}
 	};
 	
@@ -73,7 +69,6 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void onClick(View v) {
-			// TODO Auto-generated method stub
 			Log.i("MainActivity","onClick");
 			
 			switch(v.getId())
