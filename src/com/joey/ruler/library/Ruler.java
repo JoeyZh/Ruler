@@ -51,6 +51,7 @@ public class Ruler extends FrameLayout {
 	private float bmpMaxHeight = 60.0f;
 
 	private float maxTextSize = 10.0f;
+	private float resultTextSize = 15.0f;
 
 	/**
 	 * unit size of the ruler
@@ -90,6 +91,12 @@ public class Ruler extends FrameLayout {
 	 */
 	private LinearLayout textContainer;
 	private RelativeLayout rulerContainer;
+	/**
+	 * 显示结果的容器
+	 */
+	private LinearLayout resultContainer;
+	public TextView resultTagView;
+	public TextView resullView;
 	/**
 	 * 整个刻度尺
 	 */
@@ -192,16 +199,16 @@ public class Ruler extends FrameLayout {
 		rulerContainer = new RelativeLayout(getContext());
 		rulerContainer.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
 		rootContainer.addView(rulerContainer);
+		
+		//初始化显示刻度文字
 		RelativeLayout.LayoutParams paramsTop = new RelativeLayout.LayoutParams(
-				-1, -2);
-		paramsTop.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-
+				-1, -2);	
 		textContainer = new LinearLayout(getContext());
 		textContainer.setLayoutParams(paramsTop);
 		textContainer.setOrientation(LinearLayout.HORIZONTAL);
 		textContainer.setId(R.id.unit_container_id);
 		rulerContainer.addView(textContainer);
-		//
+		//初始化刻尺图标容器
 		RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
 				-1, -2);
 		params2.addRule(RelativeLayout.BELOW, R.id.unit_container_id);
@@ -323,6 +330,12 @@ public class Ruler extends FrameLayout {
 
 	}
 
+	public void setRulerTag(String textTag)
+	{
+		if(textTag == null)
+			return;
+		resultTagView.setText(textTag);
+	}
 	public void setRulerHandler(RulerHandler rulerHandler) {
 		this.rulerHandler = rulerHandler;
 	}
