@@ -50,7 +50,7 @@ public class Ruler extends FrameLayout {
 
 	private float bmpMaxHeight = 60.0f;
 
-	private float maxTextSize = 15.0f;
+	private float maxTextSize = 10.0f;
 
 	/**
 	 * unit size of the ruler
@@ -100,13 +100,23 @@ public class Ruler extends FrameLayout {
 	private RulerScrollView scrollerView;
 
 	private RulerHandler rulerHandler;
+	
+	private int mode;
 	/**
 	 * 标记刻度尺的类型，一种是一般的刻度尺， 另一种为时间刻度尺
 	 */
 	public final static int MODE_RULER = 0;
 	public final static int MODE_TIMELINE = 1;
+	
+	private int unitVisible;
+	/**
+	 * 标记3中刻度图标的可见性
+	 */
+	public final static int MID_VISIBLE = 0x4;
+	public final static int MIN_VISIBLE = 0x2;
+	public final static int MAX_VISIBLE = 0x1;
 
-	private int mode;
+	
 
 	public Ruler(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
@@ -119,7 +129,7 @@ public class Ruler extends FrameLayout {
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
 		unitPadding = minUnitSize / 2;
-
+		unitVisible = a.getInt(R.styleable.Ruler_unit_visible, MID_VISIBLE|MIN_VISIBLE|MAX_VISIBLE);
 		a.recycle();
 
 		init();
@@ -136,6 +146,7 @@ public class Ruler extends FrameLayout {
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
 		unitPadding = minUnitSize / 2;
+		unitVisible = a.getInt(R.styleable.Ruler_unit_visible, MID_VISIBLE|MIN_VISIBLE|MAX_VISIBLE);
 
 		a.recycle();
 		Log.i("Ruler",
@@ -181,25 +192,25 @@ public class Ruler extends FrameLayout {
 		rulerContainer = new RelativeLayout(getContext());
 		rulerContainer.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
 		rootContainer.addView(rulerContainer);
-		//
-		unitContainer = new LinearLayout(getContext());
-		RelativeLayout.LayoutParams params1 = new RelativeLayout.LayoutParams(
+		RelativeLayout.LayoutParams paramsTop = new RelativeLayout.LayoutParams(
 				-1, -2);
-		params1.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-		unitContainer.setLayoutParams(params1);
-		unitContainer.setOrientation(LinearLayout.HORIZONTAL);
-		unitContainer.setId(R.id.unit_container_id);
-		unitContainer.setPadding(dp2px((int) unitPadding), 0, dp2px((int) unitPadding),
-				0);
-		rulerContainer.addView(unitContainer);
+		paramsTop.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 
 		textContainer = new LinearLayout(getContext());
+		textContainer.setLayoutParams(paramsTop);
+		textContainer.setOrientation(LinearLayout.HORIZONTAL);
+		textContainer.setId(R.id.unit_container_id);
+		rulerContainer.addView(textContainer);
+		//
 		RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
 				-1, -2);
 		params2.addRule(RelativeLayout.BELOW, R.id.unit_container_id);
-		textContainer.setLayoutParams(params2);
-		textContainer.setOrientation(LinearLayout.HORIZONTAL);
-		rulerContainer.addView(textContainer);
+		unitContainer = new LinearLayout(getContext());
+		unitContainer.setLayoutParams(params2);
+		unitContainer.setOrientation(LinearLayout.HORIZONTAL);
+		unitContainer.setPadding(dp2px((int) unitPadding), 0,
+				dp2px((int) unitPadding), 0);
+		rulerContainer.addView(unitContainer);
 
 		mark = new ImageView(getContext());
 		FrameLayout.LayoutParams params3 = new FrameLayout.LayoutParams(-2, -2);
@@ -227,14 +238,16 @@ public class Ruler extends FrameLayout {
 				minUnitView.setGravity(Gravity.BOTTOM
 						| Gravity.CENTER_HORIZONTAL);
 				if (j == 0) {
-					minUnitView.setCompoundDrawables(null, maxDrawable, null,
-							null);
+						minUnitView.setCompoundDrawables(null, null, null,
+							maxDrawable);
 				} else if (j == perUnitCount / 2) {
-					minUnitView.setCompoundDrawables(null, midDrawable, null,
-							null);
+					if((unitVisible &(byte)MID_VISIBLE) == MID_VISIBLE)
+						minUnitView.setCompoundDrawables(null, null, null,
+							midDrawable);
 				} else {
-					minUnitView.setCompoundDrawables(null, minDrawable, null,
-							null);
+					if((unitVisible &(byte)MIN_VISIBLE) == MIN_VISIBLE)
+						minUnitView.setCompoundDrawables(null, null, null,
+							minDrawable);
 				}
 				minUnitView.setText("");
 				unitContainer.addView(minUnitView);
@@ -244,27 +257,20 @@ public class Ruler extends FrameLayout {
 		maxUnitView.setTextSize(.1f);
 		maxUnitView.setLayoutParams(params);
 		maxUnitView.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-		maxUnitView.setCompoundDrawables(null, maxDrawable, null, null);
+		maxUnitView.setCompoundDrawables(null, null, null, maxDrawable);
 		unitContainer.addView(maxUnitView);
 
 		LinearLayout.LayoutParams maxParams = new LinearLayout.LayoutParams(
-				dp2px((int) minUnitSize * perUnitCount / 2), -2);
+				dp2px((int)minUnitSize)*perUnitCount/2 , -2);
 		for (int i = 0; i < maxUnitCount * 2; i++) {
 			TextView textUnitView = new TextView(getContext());
 			textUnitView.setTextSize(maxTextSize);
 			textUnitView.setLayoutParams(maxParams);
-			textUnitView.setGravity(Gravity.TOP | Gravity.LEFT);
-			switch (mode) {
-			case MODE_RULER:
-				if (i % 2 == 0)
-					textUnitView.setText(String.format("    %d  ", i / 2));
-				break;
-			case MODE_TIMELINE:
-				if (i % 2 == 0)
-					textUnitView.setText(String.format("%02d:00", i / 2));
-				else
-					textUnitView.setText(String.format("%02d:30", i / 2));
+			textUnitView.setGravity(Gravity.BOTTOM | Gravity.LEFT);
 
+			if (i % 2 == 0)
+			{
+				textUnitView.setText(String.format("%d  ", i / 2));			
 			}
 
 			textContainer.addView(textUnitView);
@@ -275,26 +281,29 @@ public class Ruler extends FrameLayout {
 	 * 初始化单位的背景图
 	 */
 	private void initDrawable() {
+		int maxHeight = dp2px((int) bmpMaxHeight);
+		int midHeight = maxHeight * 3 / 4;
+		int minHeight = maxHeight * 2 / 3;
 		Bitmap bmp1 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				dp2px((int) bmpMaxHeight), Config.ARGB_8888);
+				maxHeight, Config.ARGB_8888);
 		Bitmap bmp2 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				dp2px((int) bmpMaxHeight) * 3 / 4, Config.ARGB_8888);
+				maxHeight, Config.ARGB_8888);
 		Bitmap bmp3 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				dp2px((int) bmpMaxHeight) * 2 / 3, Config.ARGB_8888);
+				maxHeight, Config.ARGB_8888);
 		Paint paint = new Paint();
 		paint.setColor(Color.BLACK);
 		paint.setStrokeWidth(10);
 		paint.setStyle(Paint.Style.STROKE);
 
 		Canvas canvas1 = new Canvas(bmp1);
-		canvas1.drawLine(0, 10, 0, bmp1.getHeight(), paint);
+		canvas1.drawLine(0, 0, 0, maxHeight, paint);
 
 		Canvas canvas2 = new Canvas(bmp2);
-		canvas2.drawLine(0, 10, 0, bmp2.getHeight(), paint);
+		canvas2.drawLine(0, maxHeight-midHeight, 0, maxHeight, paint);
 
 		Canvas canvas3 = new Canvas(bmp3);
 		paint.setAlpha(80);
-		canvas3.drawLine(0, 10, 0, bmp3.getHeight(), paint);
+		canvas3.drawLine(0, maxHeight-minHeight, 0, maxHeight, paint);
 
 		minDrawable = new BitmapDrawable(bmp3);
 		minDrawable.setBounds(0, 0, minDrawable.getMinimumWidth(),
@@ -319,8 +328,8 @@ public class Ruler extends FrameLayout {
 	}
 
 	/**
-	 * time format is HH:MM
-	 * 跳转到时间刻度尺的部分，只有在时间轴模式下条件下才能使用
+	 * time format is HH:MM 跳转到时间刻度尺的部分，只有在时间轴模式下条件下才能使用
+	 * 
 	 * @param formatTime
 	 */
 	public void scrollToTime(String formatTime) {
@@ -331,8 +340,8 @@ public class Ruler extends FrameLayout {
 		String value[] = formatTime.split(":");
 		if (value.length < 2)
 			return;
-		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding + (int) minUnitSize
-				/ 2 - UNIT_ITEM_WIDTH * 2))
+		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding
+				+ (int) minUnitSize / 2 - UNIT_ITEM_WIDTH * 2))
 				/ dp2px((int) minUnitSize);
 		Log.i(getClass().getName(), "minVal = " + minVal);
 		int hour = Integer.parseInt(value[0]) % 24;
@@ -347,15 +356,20 @@ public class Ruler extends FrameLayout {
 		scrollerView.smoothScrollTo(
 				(int) ((val - minVal) * dp2px((int) minUnitSize)), 0);
 	}
+
 	/**
 	 * 跳转到刻度尺的某个位置
-	 * @param max 最大刻度
-	 * @param min 最小刻度
-	 * @param val 最小刻度的浮点部分
+	 * 
+	 * @param max
+	 *            最大刻度
+	 * @param min
+	 *            最小刻度
+	 * @param val
+	 *            最小刻度的浮点部分
 	 */
 	public void scrollTo(int max, int min, float val) {
-		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding + (int) minUnitSize
-				/ 2 - UNIT_ITEM_WIDTH * 2))
+		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding
+				+ (int) minUnitSize / 2 - UNIT_ITEM_WIDTH * 2))
 				/ dp2px((int) minUnitSize);
 		Log.i(getClass().getName(), "minVal = " + minVal);
 
@@ -372,12 +386,15 @@ public class Ruler extends FrameLayout {
 
 		@Override
 		public void onScrollChanged(ScrollType scrollType) {
-//		目的是让刻尺滑动到最前段，或者最后部分
-			if(padding == 0)
-			{
-				padding = getWidth() / 2 - dp2px((int)unitPadding + (int)minUnitSize/2 + UNIT_ITEM_WIDTH);
-//				计算刻尺容器靠右的部分时，减去markBimap的宽度，保持可以滑动到最右边
-				rootContainer.setPadding(padding, 0,padding+(dp2px(UNIT_ITEM_WIDTH*2)), 0);
+			// 目的是让刻尺滑动到最前段，或者最后部分
+			if (padding == 0) {
+				padding = getWidth()
+						/ 2
+						- dp2px((int) unitPadding + (int) minUnitSize / 2
+								+ UNIT_ITEM_WIDTH);
+				// 计算刻尺容器靠右的部分时，减去markBimap的宽度，保持可以滑动到最右边
+				rootContainer.setPadding(padding, 0, padding
+						+ (dp2px(UNIT_ITEM_WIDTH * 2)), 0);
 				scrollerView.scrollBy(padding, 0);
 				return;
 			}
@@ -388,7 +405,8 @@ public class Ruler extends FrameLayout {
 				int scrollX = scrollerView.getScrollX() - padding;
 
 				int newScrollX = (scrollX + getWidth() / 2
-						- dp2px((int) unitPadding) - dp2px((int) minUnitSize + UNIT_ITEM_WIDTH) / 2);
+						- dp2px((int) unitPadding) - dp2px((int) minUnitSize
+						+ UNIT_ITEM_WIDTH) / 2);
 				int bigUnitSize = (dp2px((int) minUnitSize) * perUnitCount);
 				int smallUnitSize = dp2px((int) minUnitSize);
 				int max = newScrollX / bigUnitSize;
@@ -398,6 +416,10 @@ public class Ruler extends FrameLayout {
 
 				Log.i(getClass().getName(), "max = " + max + ",min = " + min
 						+ ",val = " + val);
+				Log.i(getClass().getName(),"unitvisible "+unitVisible );
+				Log.i(getClass().getName(),"midvisible "+(unitVisible &(byte)MID_VISIBLE));
+				Log.i(getClass().getName(),"minvisible "+(unitVisible &(byte)MIN_VISIBLE));
+
 				if (rulerHandler != null) {
 					rulerHandler.markScrollto(max, min, val);
 				}

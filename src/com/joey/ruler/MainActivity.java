@@ -42,12 +42,6 @@ public class MainActivity extends Activity {
 		button2.setOnClickListener(clickListener);
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
 	private RulerHandler rulerHandler = new RulerHandler() {
 		
 		@Override
