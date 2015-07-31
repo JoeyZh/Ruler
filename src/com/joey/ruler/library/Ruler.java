@@ -443,7 +443,7 @@ public class Ruler extends FrameLayout {
 								+ UNIT_ITEM_WIDTH);
 				// 计算刻尺容器靠右的部分时，减去markBimap的宽度，保持可以滑动到最右边
 				rootContainer.setPadding(padding, 0, padding
-						+ (dp2px(UNIT_ITEM_WIDTH * 2)), 0);
+						+ (dp2px(UNIT_ITEM_WIDTH)), 0);
 				scrollerView.scrollBy(padding, 0);
 				return;
 			}
@@ -482,7 +482,7 @@ public class Ruler extends FrameLayout {
 		if(mode == MODE_TIMELINE)
 		{
 			int hour = max;
-			int minute = min*6 + (int)(val *6);
+			int minute = (int)(( min+ val )*60/perUnitCount);
 			resultView.setText(String.format("%02d:%02d", hour,minute));
 		}
 		if(mode == MODE_RULER)
