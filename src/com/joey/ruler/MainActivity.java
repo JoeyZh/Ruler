@@ -29,12 +29,14 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main);
 		ruler = (Ruler)findViewById(R.id.ruler);
 		result = (TextView)findViewById(R.id.result_text);
+		ruler.setRulerTag("时间轴demo");
 		ruler.setRulerHandler(rulerHandler);
 		editText = (EditText)findViewById(R.id.edit_text);
 		button = (Button)findViewById(R.id.button);
 		button.setOnClickListener(clickListener);
 		
 		ruler2 = (Ruler)findViewById(R.id.ruler2);
+		ruler2.setRulerTag("刻尺demo");
 		result2 = (TextView)findViewById(R.id.result_text2);
 		ruler2.setRulerHandler(rulerHandler2);
 		editText2 = (EditText)findViewById(R.id.edit_text2);

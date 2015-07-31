@@ -95,8 +95,14 @@ public class Ruler extends FrameLayout {
 	 * 显示结果的容器
 	 */
 	private LinearLayout resultContainer;
-	public TextView resultTagView;
-	public TextView resultView;
+	/**
+	 * 左边的一个修饰文字
+	 */
+	private TextView resultTagView;
+	/**
+	 * 显示结果显示
+	 */
+	private TextView resultView;
 	/**
 	 * 整个刻度尺
 	 */
@@ -228,17 +234,22 @@ public class Ruler extends FrameLayout {
 		addView(resultContainer);
 		
 		LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-				0, -1);
+				-2, -1);
 		textParams.gravity = Gravity.CENTER;
 		textParams.weight = 1;
 		resultTagView = new TextView(getContext());
 		resultTagView.setLayoutParams(textParams);
 		resultContainer.addView(resultTagView);
 		resultTagView.setTextSize(resultTextSize);
+		resultTagView.setPadding(dp2px((int)resultTextSize), 0, dp2px((int)resultTextSize), 0);
 		
+		textParams.gravity = Gravity.RIGHT|Gravity
+				.CENTER_VERTICAL;
 		resultView = new TextView(getContext());
 		resultView.setLayoutParams(textParams);
 		resultView.setTextSize(resultTextSize);
+		resultView.setPadding(dp2px((int)resultTextSize), 0, dp2px((int)resultTextSize), 0);
+
 		resultContainer.addView(resultView);
 		
 		mark = new ImageView(getContext());
@@ -351,7 +362,10 @@ public class Ruler extends FrameLayout {
 		canvas4.drawLine(0, 0, 0, markBgBmp.getHeight(), paint);
 
 	}
-
+	/**
+	 * 设置刻尺的标签，比如品牌什么的
+	 * @param textTag
+	 */
 	public void setRulerTag(String textTag)
 	{
 		if(textTag == null)
