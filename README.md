@@ -5,21 +5,8 @@ A horizontal scrolling Ruler，it contains two different mode,timeline mode (HH:
 #使用方法 
 在布局xml定义如下 <br>
 ```XML
-```<br>
-```<com.joey.ruler.library.Ruler```<br>
-```        android:id="@+id/ruler"```<br>
-```android:layout_width="fill_parent"```<br>
-```android:layout_height="wrap_content"```<br>
-```android:layout_below="@+id/result_text"···<br>
-```android:background="#ffaaaaaa"```<br>
-```android:orientation="horizontal"```<br>
-```ruler:max_unit_count="24"```<br>
-```ruler:min_unit_size="2dp"```<br>
-```ruler:per_unit_count="10"```<br>
-```ruler:unit_visible="max"···<br>
-```ruler:ruler_mode="timeline"```<br>
-```ruler:unit_bmp_height="20dp" />
-```<br>   
+
+```
 max_unit_count 表示最大的单位数目 <br>
 min_unit_size 表示最小单位所占的像素大小，理解为画出来的最小单位的宽度 单位时demon <br>
 per_unit_count 表示最大单位包含的最小单位数<br>
