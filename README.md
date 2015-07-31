@@ -2,10 +2,22 @@
 A horizontal scrolling Ruler，it contains two different mode,timeline mode (HH:mm),and normal ruler mode;
 一个横向滑动的刻度尺demo，它有两种模式，一种是timeline(时间轴格式，24小时）,一种是ruler（普通的刻度尺）
 
-#使用方法 
+##使用方法 
 在布局xml定义如下 <br>
 ```XML
-
+ <com.joey.ruler.library.Ruler
+        android:id="@+id/ruler"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/result_text"
+        android:background="#ffaaaaaa"
+        android:orientation="horizontal"
+        ruler:max_unit_count="24"
+        ruler:min_unit_size="2dp"
+        ruler:per_unit_count="10"
+        ruler:unit_visible="max"
+        ruler:ruler_mode="timeline"
+        ruler:unit_bmp_height="20dp" />
 ```
 max_unit_count 表示最大的单位数目 <br>
 min_unit_size 表示最小单位所占的像素大小，理解为画出来的最小单位的宽度 单位时demon <br>
