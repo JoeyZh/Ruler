@@ -66,9 +66,8 @@ public class Ruler extends FrameLayout {
 	 */
 	private int perUnitCount = 10;
 
-	private int maxUnitColor;
-	private int midUnitColor;
-	private int minUnitColor;
+	private int unitColor;
+	private int markColor;
 
 	/**
 	 * Padding on the left,
@@ -113,14 +112,14 @@ public class Ruler extends FrameLayout {
 	private RulerScrollView scrollerView;
 
 	private RulerHandler rulerHandler;
-	
+
 	private int mode;
 	/**
 	 * 标记刻度尺的类型，一种是一般的刻度尺， 另一种为时间刻度尺
 	 */
 	public final static int MODE_RULER = 0;
 	public final static int MODE_TIMELINE = 1;
-	
+
 	private int unitVisible;
 	/**
 	 * 标记3中刻度图标的可见性
@@ -128,8 +127,6 @@ public class Ruler extends FrameLayout {
 	public final static int MID_VISIBLE = 0x4;
 	public final static int MIN_VISIBLE = 0x2;
 	public final static int MAX_VISIBLE = 0x1;
-
-	
 
 	public Ruler(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
@@ -142,7 +139,10 @@ public class Ruler extends FrameLayout {
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
 		unitPadding = minUnitSize / 2;
-		unitVisible = a.getInt(R.styleable.Ruler_unit_visible, MID_VISIBLE|MIN_VISIBLE|MAX_VISIBLE);
+		unitVisible = a.getInt(R.styleable.Ruler_unit_visible, MID_VISIBLE
+				| MIN_VISIBLE | MAX_VISIBLE);
+		unitColor = a.getColor(R.styleable.Ruler_unit_color, Color.BLACK);
+		markColor = a.getColor(R.styleable.Ruler_mark_color, Color.RED);
 		a.recycle();
 
 		init();
@@ -159,8 +159,10 @@ public class Ruler extends FrameLayout {
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
 		unitPadding = minUnitSize / 2;
-		unitVisible = a.getInt(R.styleable.Ruler_unit_visible, MID_VISIBLE|MIN_VISIBLE|MAX_VISIBLE);
-
+		unitVisible = a.getInt(R.styleable.Ruler_unit_visible, MID_VISIBLE
+				| MIN_VISIBLE | MAX_VISIBLE);
+		unitColor = a.getColor(R.styleable.Ruler_unit_color, Color.BLACK);
+		markColor = a.getColor(R.styleable.Ruler_mark_color, Color.RED);
 		a.recycle();
 		Log.i("Ruler",
 				String.format(
@@ -182,6 +184,7 @@ public class Ruler extends FrameLayout {
 		initParentContainer();
 		initUnit();
 		scrollerView.setOnScrollStateChangedListener(scrollListener);
+		postDelayed(measurePaddingRunnable, 100);
 	}
 
 	/**
@@ -205,17 +208,17 @@ public class Ruler extends FrameLayout {
 		rulerContainer = new RelativeLayout(getContext());
 		rulerContainer.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
 		rootContainer.addView(rulerContainer);
-		
-		//初始化显示刻度文字
+
+		// 初始化显示刻度文字
 		RelativeLayout.LayoutParams paramsTop = new RelativeLayout.LayoutParams(
 				-1, -2);
-		paramsTop.topMargin = dp2px((int)(bmpMaxHeight/2+resultTextSize));
+		paramsTop.topMargin = dp2px((int) (bmpMaxHeight / 2 + resultTextSize));
 		textContainer = new LinearLayout(getContext());
 		textContainer.setLayoutParams(paramsTop);
 		textContainer.setOrientation(LinearLayout.HORIZONTAL);
 		textContainer.setId(R.id.unit_container_id);
 		rulerContainer.addView(textContainer);
-		//初始化刻尺图标容器
+		// 初始化刻尺图标容器
 		RelativeLayout.LayoutParams params2 = new RelativeLayout.LayoutParams(
 				-1, -2);
 		params2.addRule(RelativeLayout.BELOW, R.id.unit_container_id);
@@ -227,12 +230,12 @@ public class Ruler extends FrameLayout {
 		rulerContainer.addView(unitContainer);
 
 		FrameLayout.LayoutParams params3 = new FrameLayout.LayoutParams(-1,
-				paramsTop.topMargin);	
+				paramsTop.topMargin);
 		resultContainer = new LinearLayout(getContext());
 		resultContainer.setLayoutParams(params3);
-		params3.gravity = Gravity.TOP|Gravity.CENTER_HORIZONTAL;
+		params3.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
 		addView(resultContainer);
-		
+
 		LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
 				-2, -1);
 		textParams.gravity = Gravity.CENTER;
@@ -241,27 +244,56 @@ public class Ruler extends FrameLayout {
 		resultTagView.setLayoutParams(textParams);
 		resultContainer.addView(resultTagView);
 		resultTagView.setTextSize(resultTextSize);
-		resultTagView.setPadding(dp2px((int)resultTextSize), 0, dp2px((int)resultTextSize), 0);
-		
-		textParams.gravity = Gravity.RIGHT|Gravity
-				.CENTER_VERTICAL;
+		resultTagView.setPadding(dp2px((int) resultTextSize), 0,
+				dp2px((int) resultTextSize), 0);
+
+		textParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
 		resultView = new TextView(getContext());
 		resultView.setLayoutParams(textParams);
 		resultView.setTextSize(resultTextSize);
-		resultView.setPadding(dp2px((int)resultTextSize), 0, dp2px((int)resultTextSize), 0);
+		resultView.setPadding(dp2px((int) resultTextSize), 0,
+				dp2px((int) resultTextSize), 0);
 
 		resultContainer.addView(resultView);
-		
+
 		mark = new ImageView(getContext());
-		FrameLayout.LayoutParams paramsMark = new FrameLayout.LayoutParams(-2, -1);
+		FrameLayout.LayoutParams paramsMark = new FrameLayout.LayoutParams(-2,
+				-1);
 		paramsMark.gravity = Gravity.CENTER;
-		paramsMark.leftMargin = -markBgBmp.getWidth() / 2;
 		mark.setLayoutParams(paramsMark);
 		mark.setImageBitmap(markBgBmp);
 		addView(mark);
-
 	}
+	/**
+	 *  目的是让刻尺滑动到最前段，或者最后部分
+	 */
+	private Runnable measurePaddingRunnable = new Runnable() {
 
+		@Override
+		public void run() {
+			if (padding == 0) {
+//				这部分padding计算的总规则是，宽度的一半减去unitContainer左边的padding，再减去unitContainer第一个刻度的一半宽度。
+				padding = getWidth()
+						/ 2
+						- dp2px((int) unitPadding) - unitContainer.getChildAt(0).getWidth()/2;
+				rootContainer.setPadding(padding, 0, padding, 0);
+				return;
+			}
+		}
+	};
+
+	public int getMinUnitSize()
+	{
+		return dp2px((int)minUnitSize);
+	}
+	public int getPerUnitCount()
+	{
+		return perUnitCount;
+	}
+	public int getMaxUnitCount()
+	{
+		return maxUnitCount;
+	}
 	/**
 	 * 初始化刻度与刻度标记部分
 	 */
@@ -278,16 +310,16 @@ public class Ruler extends FrameLayout {
 				minUnitView.setGravity(Gravity.BOTTOM
 						| Gravity.CENTER_HORIZONTAL);
 				if (j == 0) {
-						minUnitView.setCompoundDrawables(null, null, null,
+					minUnitView.setCompoundDrawables(null, null, null,
 							maxDrawable);
 				} else if (j == perUnitCount / 2) {
-					if((unitVisible &(byte)MID_VISIBLE) == MID_VISIBLE)
+					if ((unitVisible & (byte) MID_VISIBLE) == MID_VISIBLE)
 						minUnitView.setCompoundDrawables(null, null, null,
-							midDrawable);
+								midDrawable);
 				} else {
-					if((unitVisible &(byte)MIN_VISIBLE) == MIN_VISIBLE)
+					if ((unitVisible & (byte) MIN_VISIBLE) == MIN_VISIBLE)
 						minUnitView.setCompoundDrawables(null, null, null,
-							minDrawable);
+								minDrawable);
 				}
 				minUnitView.setText("");
 				unitContainer.addView(minUnitView);
@@ -301,16 +333,15 @@ public class Ruler extends FrameLayout {
 		unitContainer.addView(maxUnitView);
 
 		LinearLayout.LayoutParams maxParams = new LinearLayout.LayoutParams(
-				dp2px((int)minUnitSize)*perUnitCount/2 , -2);
+				dp2px((int) minUnitSize) * perUnitCount / 2, -2);
 		for (int i = 0; i < maxUnitCount * 2; i++) {
 			TextView textUnitView = new TextView(getContext());
 			textUnitView.setTextSize(maxTextSize);
 			textUnitView.setLayoutParams(maxParams);
 			textUnitView.setGravity(Gravity.BOTTOM | Gravity.LEFT);
 
-			if (i % 2 == 0)
-			{
-				textUnitView.setText(String.format("%d  ", i / 2));			
+			if (i % 2 == 0) {
+				textUnitView.setText(String.format("%d  ", i / 2));
 			}
 
 			textContainer.addView(textUnitView);
@@ -324,14 +355,14 @@ public class Ruler extends FrameLayout {
 		int maxHeight = dp2px((int) bmpMaxHeight);
 		int midHeight = maxHeight * 3 / 4;
 		int minHeight = maxHeight * 2 / 3;
-		Bitmap bmp1 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				maxHeight, Config.ARGB_8888);
-		Bitmap bmp2 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				maxHeight, Config.ARGB_8888);
-		Bitmap bmp3 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH),
-				maxHeight, Config.ARGB_8888);
+		Bitmap bmp1 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH), maxHeight,
+				Config.ARGB_8888);
+		Bitmap bmp2 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH), maxHeight,
+				Config.ARGB_8888);
+		Bitmap bmp3 = Bitmap.createBitmap(dp2px(UNIT_ITEM_WIDTH), maxHeight,
+				Config.ARGB_8888);
 		Paint paint = new Paint();
-		paint.setColor(Color.BLACK);
+		paint.setColor(unitColor);
 		paint.setStrokeWidth(10);
 		paint.setStyle(Paint.Style.STROKE);
 
@@ -339,11 +370,11 @@ public class Ruler extends FrameLayout {
 		canvas1.drawLine(0, 0, 0, maxHeight, paint);
 
 		Canvas canvas2 = new Canvas(bmp2);
-		canvas2.drawLine(0, maxHeight-midHeight, 0, maxHeight, paint);
+		canvas2.drawLine(0, maxHeight - midHeight, 0, maxHeight, paint);
 
 		Canvas canvas3 = new Canvas(bmp3);
 		paint.setAlpha(80);
-		canvas3.drawLine(0, maxHeight-minHeight, 0, maxHeight, paint);
+		canvas3.drawLine(0, maxHeight - minHeight, 0, maxHeight, paint);
 
 		minDrawable = new BitmapDrawable(bmp3);
 		minDrawable.setBounds(0, 0, minDrawable.getMinimumWidth(),
@@ -354,24 +385,25 @@ public class Ruler extends FrameLayout {
 		midDrawable = new BitmapDrawable(bmp2);
 		midDrawable.setBounds(0, 0, midDrawable.getMinimumWidth(),
 				midDrawable.getMinimumHeight());
-		markBgBmp = Bitmap.createBitmap(2 * dp2px(UNIT_ITEM_WIDTH),
-				maxHeight*2 + dp2px((int) maxTextSize),
-				Config.ARGB_8888);
+		markBgBmp = Bitmap.createBitmap(2 * dp2px(UNIT_ITEM_WIDTH), maxHeight
+				* 2 + dp2px((int) maxTextSize), Config.ARGB_8888);
 		Canvas canvas4 = new Canvas(markBgBmp);
-		paint.setColor(Color.RED);
+		paint.setColor(markColor);
 		canvas4.drawLine(0, 0, 0, markBgBmp.getHeight(), paint);
 
 	}
+
 	/**
 	 * 设置刻尺的标签，比如品牌什么的
+	 * 
 	 * @param textTag
 	 */
-	public void setRulerTag(String textTag)
-	{
-		if(textTag == null)
+	public void setRulerTag(String textTag) {
+		if (textTag == null)
 			return;
 		resultTagView.setText(textTag);
 	}
+
 	public void setRulerHandler(RulerHandler rulerHandler) {
 		this.rulerHandler = rulerHandler;
 	}
@@ -382,6 +414,7 @@ public class Ruler extends FrameLayout {
 	 * @param formatTime
 	 */
 	public void scrollToTime(String formatTime) {
+		Log.i(getClass().getName(), "formatTime = " + formatTime);
 		if (mode == MODE_RULER)
 			return;
 		if (formatTime == null || formatTime.isEmpty())
@@ -389,9 +422,7 @@ public class Ruler extends FrameLayout {
 		String value[] = formatTime.split(":");
 		if (value.length < 2)
 			return;
-		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding
-				+ (int) minUnitSize / 2 - UNIT_ITEM_WIDTH * 2))
-				/ dp2px((int) minUnitSize);
+		int minVal = 0;
 		Log.i(getClass().getName(), "minVal = " + minVal);
 		int hour = Integer.parseInt(value[0]) % 24;
 		int minute = Integer.parseInt(value[1]) % 60;
@@ -404,6 +435,7 @@ public class Ruler extends FrameLayout {
 		}
 		scrollerView.smoothScrollTo(
 				(int) ((val - minVal) * dp2px((int) minUnitSize)), 0);
+		resultView.setText(formatTime);
 	}
 
 	/**
@@ -417,9 +449,9 @@ public class Ruler extends FrameLayout {
 	 *            最小刻度的浮点部分
 	 */
 	public void scrollTo(int max, int min, float val) {
-		int minVal = (getWidth() / 2 - padding - dp2px((int) unitPadding
-				+ (int) minUnitSize / 2 - UNIT_ITEM_WIDTH * 2))
-				/ dp2px((int) minUnitSize);
+		if(min>perUnitCount)
+			return;
+		int minVal = 0;
 		Log.i(getClass().getName(), "minVal = " + minVal);
 
 		int total = max * 10 + min;
@@ -429,33 +461,20 @@ public class Ruler extends FrameLayout {
 		}
 		scrollerView.smoothScrollTo(
 				(int) ((total - minVal + val) * dp2px((int) minUnitSize)), 0);
+		resultView.setText(String.format("%02f",((float) max + ((float) min + val) / 10)));
 	}
 
 	ScrollViewListener scrollListener = new ScrollViewListener() {
 
 		@Override
 		public void onScrollChanged(ScrollType scrollType) {
-			// 目的是让刻尺滑动到最前段，或者最后部分
-			if (padding == 0) {
-				padding = getWidth()
-						/ 2
-						- dp2px((int) unitPadding + (int) minUnitSize / 2
-								+ UNIT_ITEM_WIDTH);
-				// 计算刻尺容器靠右的部分时，减去markBimap的宽度，保持可以滑动到最右边
-				rootContainer.setPadding(padding, 0, padding
-						+ (dp2px(UNIT_ITEM_WIDTH)), 0);
-				scrollerView.scrollBy(padding, 0);
-				return;
-			}
+
 			switch (scrollType) {
 			case IDLE:
 			case TOUCH_SCROLL:
 			case FLING:
-				int scrollX = scrollerView.getScrollX() - padding;
-
-				int newScrollX = (scrollX + getWidth() / 2
-						- dp2px((int) unitPadding) - dp2px((int) minUnitSize
-						+ UNIT_ITEM_WIDTH) / 2);
+				
+				int newScrollX = scrollerView.getScrollX();
 				int bigUnitSize = (dp2px((int) minUnitSize) * perUnitCount);
 				int smallUnitSize = dp2px((int) minUnitSize);
 				int max = newScrollX / bigUnitSize;
@@ -465,34 +484,40 @@ public class Ruler extends FrameLayout {
 
 				Log.i(getClass().getName(), "max = " + max + ",min = " + min
 						+ ",val = " + val);
-				Log.i(getClass().getName(),"unitvisible "+unitVisible );
-				Log.i(getClass().getName(),"midvisible "+(unitVisible &(byte)MID_VISIBLE));
-				Log.i(getClass().getName(),"minvisible "+(unitVisible &(byte)MIN_VISIBLE));
-				
+				Log.i(getClass().getName(), "unitvisible " + unitVisible);
+				Log.i(getClass().getName(), "midvisible "
+						+ (unitVisible & (byte) MID_VISIBLE));
+				Log.i(getClass().getName(), "minvisible "
+						+ (unitVisible & (byte) MIN_VISIBLE));
+
 				showResult(max, min, val);
-				
+
 				break;
 			}
 		}
 
 	};
 
-	private void showResult(int max,int min,float val)
-	{
-		if(mode == MODE_TIMELINE)
+	private void showResult(int max, int min, float val) {
+		if(max == maxUnitCount)
 		{
-			int hour = max;
-			int minute = (int)(( min+ val )*60/perUnitCount);
-			resultView.setText(String.format("%02d:%02d", hour,minute));
+			min = 0;
+			val = 0f;
 		}
-		if(mode == MODE_RULER)
-		{
-			resultView.setText(String.format("%02f", ((float)max+((float)min+val)/10)));
+		if (mode == MODE_TIMELINE) {
+			int hour = max;
+			int minute = (int) ((min + val) * 60 / perUnitCount);
+			resultView.setText(String.format("%02d:%02d", hour, minute));
+		}
+		if (mode == MODE_RULER) {
+			resultView.setText(String.format("%02f",
+					((float) max + ((float) min + val) / 10)));
 		}
 		if (rulerHandler != null) {
 			rulerHandler.markScrollto(max, min, val);
 		}
 	}
+
 	public int dp2px(int dp) {
 		float scale = getContext().getResources().getDisplayMetrics().density;
 		return (int) (dp * scale + 0.5f);

@@ -69,13 +69,29 @@ public class MainActivity extends Activity {
 			
 			switch(v.getId())
 			{
-			case R.id.edit_text:
+			case R.id.button:
 				String msg = editText.getText().toString();
 				if(msg == null ||msg.isEmpty())
 					return;
 				result.setText(msg);
 				ruler.scrollToTime(msg);
-			case R.id.edit_text2:
+			case R.id.button2:
+				msg = editText2.getText().toString();
+				if(msg == null ||msg.isEmpty())
+					return;
+				try
+				{
+				Double value = Double.parseDouble(msg);
+				int max = value.intValue();
+				int min =(int)( (value.doubleValue() - max) * 10);
+				float val = (float)(value.doubleValue() - max - min/10.0f)*10;
+				Log.i("MainActivity","max = "+max+",min = "+min+" val = "+val);
+				result2.setText(msg);
+				ruler2.scrollTo(max, min, val);
+				}
+				catch (Exception e) {
+					
+				}
 				break;
 			}
 		

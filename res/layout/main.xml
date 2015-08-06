@@ -27,6 +27,7 @@
         ruler:per_unit_count="10"
         ruler:unit_visible="max"
         ruler:ruler_mode="timeline"
+        ruler:mark_color="@android:color/white"
         ruler:unit_bmp_height="20dp" />
 
     <EditText
@@ -59,7 +60,7 @@
         android:background="#ffaaaaaa"
         android:orientation="horizontal"
         ruler:max_unit_count="100"
-        ruler:min_unit_size="4dp"
+        ruler:min_unit_size="10dp"
         ruler:per_unit_count="10"
         ruler:ruler_mode="ruler"
         ruler:unit_bmp_height="40dp" />

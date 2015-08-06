@@ -6,9 +6,6 @@
         <attr name="max_unit_count" format="integer" />
         <attr name="per_unit_count" format="integer" />
         <attr name="unit_bmp_height" format="dimension" />
-        <attr name="max_unit_color" format="color" />
-        <attr name="mid_unit_color" format="color" />
-        <attr name="min_unit_color" format="color" />
         <attr name="ruler_mode" format="enum">
             <enum name="ruler" value="0" />
             <enum name="timeline" value="1" />
@@ -18,6 +15,10 @@
             <enum name="mid" value="0x2" />
             <enum name="min" value="0x4" />
     	</attr>
+    	<!-- 刻度的颜色 -->
+    	 <attr name="unit_color" format="color"/>
+    	 <!-- 标记的颜色 -->
+         <attr name="mark_color" format="color"/>  
     </declare-styleable>
 
     <attr name="ruler_style" format="reference" />
