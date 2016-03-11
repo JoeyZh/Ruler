@@ -68,7 +68,11 @@ public class Ruler extends FrameLayout {
 
 	private int unitColor;
 	private int markColor;
-
+	/**
+	 * 每个最小单位的大小
+	 */
+	private float perMinUnit;
+	private int perMaxUnit = 1;
 	/**
 	 * Padding on the left,
 	 */
@@ -136,6 +140,7 @@ public class Ruler extends FrameLayout {
 		minUnitSize = a.getDimension(R.styleable.Ruler_min_unit_size, 20.0f);
 		maxUnitCount = a.getInteger(R.styleable.Ruler_max_unit_count, 24);
 		perUnitCount = a.getInteger(R.styleable.Ruler_per_unit_count, 10);
+		perMinUnit = a.getFloat(R.styleable.Ruler_min_unit, 1.0f);
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
 		unitPadding = minUnitSize / 2;
@@ -156,6 +161,7 @@ public class Ruler extends FrameLayout {
 		minUnitSize = a.getDimension(R.styleable.Ruler_min_unit_size, 20.0f);
 		maxUnitCount = a.getInteger(R.styleable.Ruler_max_unit_count, 24);
 		perUnitCount = a.getInteger(R.styleable.Ruler_per_unit_count, 10);
+	    perMinUnit = a.getFloat(R.styleable.Ruler_min_unit, 1.0f);
 		bmpMaxHeight = a.getDimension(R.styleable.Ruler_unit_bmp_height, 60.0f);
 		mode = a.getInt(R.styleable.Ruler_ruler_mode, MODE_TIMELINE);
 		unitPadding = minUnitSize / 2;
@@ -180,6 +186,15 @@ public class Ruler extends FrameLayout {
 
 	private void init() {
 		Log.i("Ruler", "ruler init");
+		switch(mode){
+		    case MODE_RULER:
+	              perMaxUnit =(int) (perUnitCount* perMinUnit);
+		        break;
+		    case MODE_TIMELINE:
+		        perMaxUnit = 1;
+                perMinUnit = 1;
+		        break;
+		}
 		initDrawable();
 		initParentContainer();
 		initUnit();
@@ -301,7 +316,6 @@ public class Ruler extends FrameLayout {
 
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 				dp2px((int) minUnitSize), -2);
-
 		for (int i = 0; i < maxUnitCount; i++) {
 			for (int j = 0; j < perUnitCount; j++) {
 				TextView minUnitView = new TextView(getContext());
@@ -341,7 +355,7 @@ public class Ruler extends FrameLayout {
 			textUnitView.setGravity(Gravity.BOTTOM | Gravity.LEFT);
 
 			if (i % 2 == 0) {
-				textUnitView.setText(String.format("%d  ", i / 2));
+				textUnitView.setText(String.format("%d  ", perMaxUnit*i / 2));
 			}
 
 			textContainer.addView(textUnitView);
@@ -418,24 +432,49 @@ public class Ruler extends FrameLayout {
 		if (mode == MODE_RULER)
 			return;
 		if (formatTime == null || formatTime.isEmpty())
-			return;
+		{
+		    if(rulerHandler != null){
+                rulerHandler.error(new RulerError(RulerError.ERROR_AUTHOR));
+            }
+		    return;
+		}
 		String value[] = formatTime.split(":");
 		if (value.length < 2)
-			return;
+		{
+		    if(rulerHandler != null){
+                rulerHandler.error(new RulerError(RulerError.ERROR_AUTHOR));
+            }
+		    return;
+		}
 		int minVal = 0;
 		Log.i(getClass().getName(), "minVal = " + minVal);
-		int hour = Integer.parseInt(value[0]) % 24;
-		int minute = Integer.parseInt(value[1]) % 60;
-		Log.i(getClass().getName(), "hour is " + hour + ",minute is " + minute);
-		float val = hour * 10 + (float) minute / 6;
-		Log.i(getClass().getName(), "val = " + val);
-		if (val < minVal) {
-			scrollerView.smoothScrollTo(0, 0);
-			return;
+		try{
+		    int hour = Integer.parseInt(value[0]) % 24;
+	        int minute = Integer.parseInt(value[1]) % 60;
+	        Log.i(getClass().getName(), "hour is " + hour + ",minute is " + minute);
+	        float val = hour * 10 + (float) minute / 6;
+	        Log.i(getClass().getName(), "val = " + val);
+	        if(hour<0||minute<0||val<0){
+	            if(rulerHandler != null){
+	                rulerHandler.error(new RulerError(RulerError.ERROR_NEGATIVE));
+	            }
+	            return;
+	        }
+	        if (val < minVal) {
+	            scrollerView.smoothScrollTo(0, 0);
+	            return;
+	        }
+	        scrollerView.smoothScrollTo(
+	                (int) ((val - minVal) * dp2px((int) minUnitSize)), 0);
+	        resultView.setText(formatTime);
 		}
-		scrollerView.smoothScrollTo(
-				(int) ((val - minVal) * dp2px((int) minUnitSize)), 0);
-		resultView.setText(formatTime);
+		catch(Exception e){
+		    if(rulerHandler != null){
+                rulerHandler.error(new RulerError(RulerError.ERROR_AUTHOR));
+            }
+            return;
+		}
+		
 	}
 
 	/**
@@ -448,12 +487,23 @@ public class Ruler extends FrameLayout {
 	 * @param val
 	 *            最小刻度的浮点部分
 	 */
-	public void scrollTo(int max, int min, float val) {
+	private void scrollTo(int max, int min, float val) {
 		if(min>perUnitCount)
-			return;
+		{
+		    if(rulerHandler != null){
+		        rulerHandler.error(new RulerError(RulerError.ERROR_OVER));
+		    }
+		    return;
+		}
 		int minVal = 0;
 		Log.i(getClass().getName(), "minVal = " + minVal);
-
+		if( max > maxUnitCount)
+		{
+		    if(rulerHandler != null){
+                rulerHandler.error(new RulerError(RulerError.ERROR_OVER));
+            }
+		    return ;
+		}
 		int total = max * 10 + min;
 		if (total < minVal) {
 			scrollerView.smoothScrollTo(0, 0);
@@ -461,9 +511,38 @@ public class Ruler extends FrameLayout {
 		}
 		scrollerView.smoothScrollTo(
 				(int) ((total - minVal + val) * dp2px((int) minUnitSize)), 0);
-		resultView.setText(String.format("%02f",((float) max + ((float) min + val) / 10)));
+		showResult(max, min, minVal);
 	}
 
+	public void scrollTo(String msg){
+	    if(msg == null){
+	        return;
+	    }
+	    try{
+	        Double value = Double.parseDouble(msg);
+	        if(value < 0){
+	            if(rulerHandler != null){
+	                rulerHandler.error(new RulerError(RulerError.ERROR_NEGATIVE));
+	            }
+	            return;
+	        }
+	        value /= perMaxUnit ;
+	        Log.i("MainActivity scrollTo","value= "+value);  
+
+	        int max = value.intValue();
+	        int min =(int)( (value.doubleValue() - max) * 10);
+	        float val = (float)(value.doubleValue() - max - min/10.0f)*10;
+	        Log.i("MainActivity","max = "+max+",min = "+min+" val = "+val);  
+	        scrollTo(max,min,val);
+	    }
+	    catch(Exception e){
+	        if(rulerHandler != null){
+                rulerHandler.error(new RulerError(RulerError.ERROR_AUTHOR));
+            }
+	    }
+	  
+	}
+	
 	ScrollViewListener scrollListener = new ScrollViewListener() {
 
 		@Override
@@ -504,17 +583,19 @@ public class Ruler extends FrameLayout {
 			min = 0;
 			val = 0f;
 		}
+		String text = "";
 		if (mode == MODE_TIMELINE) {
 			int hour = max;
 			int minute = (int) ((min + val) * 60 / perUnitCount);
-			resultView.setText(String.format("%02d:%02d", hour, minute));
+			text = String.format("%02d:%02d", hour, minute);
 		}
 		if (mode == MODE_RULER) {
-			resultView.setText(String.format("%02f",
-					((float) max + ((float) min + val) / 10)));
+			text = String.format("%.2f",
+					((float) max + ((float) min + val) / 10)*perMaxUnit);
 		}
+		resultView.setText(text);
 		if (rulerHandler != null) {
-			rulerHandler.markScrollto(max, min, val);
+			rulerHandler.markText(text);
 		}
 	}
 

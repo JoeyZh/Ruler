@@ -1,6 +1,7 @@
 package com.joey.ruler;
 
 import com.joey.ruler.library.Ruler;
+import com.joey.ruler.library.RulerError;
 import com.joey.ruler.library.RulerHandler;
 
 import android.os.Bundle;
@@ -47,18 +48,26 @@ public class MainActivity extends Activity {
 	private RulerHandler rulerHandler = new RulerHandler() {
 		
 		@Override
-		public void markScrollto(int max, int min, float val) {
-			int hour = max;
-			int minute = min*6 + (int)(val *6);
-			result.setText(String.format("%02d:%02d", hour,minute));
+		public void markText(String text) {
+			
+			result.setText(text);
 		}
+		@Override
+        public void error(RulerError error){
+            
+        }
 	};
 	private RulerHandler rulerHandler2 = new RulerHandler() {
 		
 		@Override
-		public void markScrollto(int max, int min, float val) {
-			result2.setText(String.format("%02f", ((float)max+((float)min+val)/10)));
+		public void markText(String text) {
+			result2.setText(text);
 		}
+		@Override
+		public void error(RulerError error){
+		    
+		}
+		
 	};
 	
 	private View.OnClickListener clickListener = new View.OnClickListener() {
@@ -79,19 +88,7 @@ public class MainActivity extends Activity {
 				msg = editText2.getText().toString();
 				if(msg == null ||msg.isEmpty())
 					return;
-				try
-				{
-				Double value = Double.parseDouble(msg);
-				int max = value.intValue();
-				int min =(int)( (value.doubleValue() - max) * 10);
-				float val = (float)(value.doubleValue() - max - min/10.0f)*10;
-				Log.i("MainActivity","max = "+max+",min = "+min+" val = "+val);
-				result2.setText(msg);
-				ruler2.scrollTo(max, min, val);
-				}
-				catch (Exception e) {
-					
-				}
+				ruler2.scrollTo(msg);
 				break;
 			}
 		
